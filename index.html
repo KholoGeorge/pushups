@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>PUSHUPS</title>
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Dexie.js -->
+  <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.3/dist/dexie.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+    }
+
+    body {
+      background: #0a0a0a;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 420px;
+      min-height: 100vh;
+      background: #0f0f0f;
+      color: #f0f0f0;
+      position: relative;
+      border-left: 1px solid #2a2a2a;
+      border-right: 1px solid #2a2a2a;
+    }
+
+    /* Brutalist Typography */
+    h1, h2, h3, h4 {
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+
+    .accent {
+      color: #ef4444;
+    }
+
+    .accent-bg {
+      background: #ef4444;
+      color: #0a0a0a;
+    }
+
+    .accent-border {
+      border: 2px solid #ef4444;
+    }
+
+    /* Buttons */
+    .btn {
+      background: transparent;
+      border: 2px solid #ef4444;
+      color: #ef4444;
+      padding: 12px 24px;
+      font-size: 1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: all 0.1s ease;
+      font-family: inherit;
+    }
+
+    .btn:hover {
+      background: #ef4444;
+      color: #0a0a0a;
+    }
+
+    .btn-solid {
+      background: #ef4444;
+      color: #0a0a0a;
+      border: 2px solid #ef4444;
+    }
+
+    .btn-solid:hover {
+      background: transparent;
+      color: #ef4444;
+    }
+
+    .btn-large {
+      width: 100%;
+      padding: 16px;
+      font-size: 1.25rem;
+    }
+
+    .btn-icon {
+      padding: 8px 12px;
+    }
+
+    /* Inputs */
+    input[type="number"],
+    input[type="text"],
+    input[type="time"] {
+      background: #1a1a1a;
+      border: 2px solid #2a2a2a;
+      color: #f0f0f0;
+      padding: 12px 16px;
+      font-size: 1rem;
+      font-family: inherit;
+      width: 100%;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #ef4444;
+    }
+
+    /* Cards & Containers */
+    .card {
+      background: #141414;
+      border: 1px solid #2a2a2a;
+      padding: 16px;
+    }
+
+    .divider {
+      height: 2px;
+      background: #2a2a2a;
+      margin: 16px 0;
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      background: #1a1a1a;
+      height: 8px;
+      width: 100%;
+    }
+
+    .progress-fill {
+      background: #ef4444;
+      height: 100%;
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    /* Set List */
+    .set-list {
+      list-style: none;
+    }
+
+    .set-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: #1a1a1a;
+      border-left: 4px solid #ef4444;
+      margin-bottom: 4px;
+      cursor: pointer;
+    }
+
+    .set-item span {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    /* History List */
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      border-bottom: 1px solid #2a2a2a;
+      cursor: pointer;
+    }
+
+    .history-item.completed {
+      border-left: 4px solid #22c55e;
+    }
+
+    .history-item.missed {
+      border-left: 4px solid #ef4444;
+    }
+
+    .history-item.rest {
+      border-left: 4px solid #6b7280;
+      opacity: 0.7;
+    }
+
+    /* Modals */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+
+    .modal {
+      background: #141414;
+      border: 2px solid #ef4444;
+      padding: 24px;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .modal h3 {
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ef4444;
+      color: #0a0a0a;
+      padding: 12px 24px;
+      font-weight: 700;
+      text-transform: uppercase;
+      z-index: 200;
+      border: 2px solid #0a0a0a;
+      animation: slideUp 0.2s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    /* Utilities */
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .text-muted { color: #6b7280; }
+    .text-large { font-size: 4rem; font-weight: 800; line-height: 1; }
+    .mb-2 { margin-bottom: 8px; }
+    .mb-4 { margin-bottom: 16px; }
+    .mb-6 { margin-bottom: 24px; }
+    .mt-4 { margin-top: 16px; }
+    .p-4 { padding: 16px; }
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .gap-2 { gap: 8px; }
+    .gap-4 { gap: 16px; }
+    .w-full { width: 100%; }
+    .hidden { display: none !important; }
+
+    /* Day Label */
+    .day-label {
+      font-size: 0.875rem;
+      color: #6b7280;
+      letter-spacing: 0.1em;
+    }
+
+    /* Target Number */
+    .target-number {
+      font-size: 6rem;
+      font-weight: 800;
+      line-height: 1;
+      color: #ef4444;
+    }
+
+    /* Rest Day Badge */
+    .rest-badge {
+      display: inline-block;
+      background: #1a1a1a;
+      border: 2px solid #6b7280;
+      color: #6b7280;
+      padding: 4px 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    (function(){
+      "use strict";
+
+      // -------------------- DATABASE --------------------
+      const db = new Dexie('PushupProgramDB');
+      db.version(1).stores({
+        settings: 'key',
+        logs: 'date'
+      });
+
+      // -------------------- STATE --------------------
+      let settings = {
+        notificationTime: '07:00',
+        currentWeek: 1,
+        programStarted: new Date().toISOString()
+      };
+      let logs = [];
+      let currentView = 'today';
+      let selectedDate = null; // for viewing/editing past days
+      let isLoading = true;
+
+      // -------------------- UTILS --------------------
+      function getTodayISO() {
+        const d = new Date();
+        return d.toISOString().split('T')[0];
+      }
+
+      function getDayInfo(dateStr) {
+        const d = new Date(dateStr);
+        const day = d.getDay(); // 0 = Sunday, 6 = Saturday
+        return {
+          isRest: day === 0 || day === 6,
+          dayName: d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase(),
+          date: dateStr
+        };
+      }
+
+      function calculateTargetForWeek(week) {
+        if (week > 20) return 210;
+        return (week * (week + 1)) / 2;
+      }
+
+      function getWeekFromMaxPushups(maxPushups) {
+        let week = 1;
+        while (week < 20 && week + 1 <= maxPushups) {
+          week++;
+        }
+        return Math.max(1, week - 3);
+      }
+
+      function getTodayTarget() {
+        const today = getTodayISO();
+        const info = getDayInfo(today);
+        if (info.isRest) return 0;
+        return calculateTargetForWeek(settings.currentWeek);
+      }
+
+      function getTodayLog() {
+        const today = getTodayISO();
+        return logs.find(l => l.date === today) || {
+          date: today,
+          target: getTodayTarget(),
+          actual: 0,
+          sets: [],
+          completed: false
+        };
+      }
+
+      // -------------------- WEEK ADVANCEMENT --------------------
+      function checkAndAdvanceWeek() {
+        const today = new Date(getTodayISO());
+        const day = today.getDay();
+        
+        // Only advance on Monday
+        if (day !== 1) return;
+        
+        // Get previous week's Mon-Fri
+        const prevWeekDates = [];
+        for (let i = 1; i <= 5; i++) {
+          const d = new Date(today);
+          d.setDate(d.getDate() - i);
+          prevWeekDates.push(d.toISOString().split('T')[0]);
+        }
+        
+        // Check how many were completed
+        let completedCount = 0;
+        for (const dateStr of prevWeekDates) {
+          const log = logs.find(l => l.date === dateStr);
+          if (log && log.completed) completedCount++;
+        }
+        
+        // Advance if all 5 completed
+        if (completedCount === 5) {
+          settings.currentWeek++;
+          saveSettings();
+          return true;
+        }
+        return false;
+      }
+
+      // -------------------- LOG OPERATIONS --------------------
+      function saveLog(log) {
+        const existing = logs.findIndex(l => l.date === log.date);
+        if (existing >= 0) {
+          logs[existing] = log;
+        } else {
+          logs.push(log);
+        }
+        db.logs.put(log);
+      }
+
+      function addSet(reps) {
+        if (reps <= 0) return;
+        
+        const today = getTodayISO();
+        const info = getDayInfo(today);
+        const log = getTodayLog();
+        
+        log.sets.push(reps);
+        log.actual = log.sets.reduce((a, b) => a + b, 0);
+        log.target = info.isRest ? 0 : calculateTargetForWeek(settings.currentWeek);
+        log.completed = info.isRest ? true : log.actual >= log.target;
+        
+        saveLog(log);
+        updateNotification();
+        render();
+      }
+
+      function updateSet(dateStr, index, newReps) {
+        const log = logs.find(l => l.date === dateStr);
+        if (!log || index >= log.sets.length) return;
+        
+        if (newReps <= 0) {
+          // Delete set
+          log.sets.splice(index, 1);
+        } else {
+          log.sets[index] = newReps;
+        }
+        
+        log.actual = log.sets.reduce((a, b) => a + b, 0);
+        const info = getDayInfo(dateStr);
+        log.target = info.isRest ? 0 : calculateTargetForWeek(getWeekForDate(dateStr));
+        log.completed = info.isRest ? true : log.actual >= log.target;
+        
+        saveLog(log);
+        
+        // Check for week advancement if editing past that affects it
+        if (dateStr === getTodayISO()) {
+          updateNotification();
+        }
+        render();
+      }
+
+      function getWeekForDate(dateStr) {
+        // Simplified: use current week for today, or estimate for past
+        // For past days, we'd need to store week at that time. 
+        // For simplicity, we'll store target in the log itself.
+        const log = logs.find(l => l.date === dateStr);
+        return log ? Math.ceil((Math.sqrt(8 * log.target + 1) - 1) / 2) : settings.currentWeek;
+      }
+
+      // -------------------- PERSISTENCE --------------------
+      async function loadData() {
+        try {
+          const savedSettings = await db.settings.get('main');
+          if (savedSettings) settings = savedSettings.value;
+          
+          const allLogs = await db.logs.toArray();
+          logs = allLogs;
+          
+          // Check for week advancement on load
+          checkAndAdvanceWeek();
+        } catch (e) {
+          console.error('Load error:', e);
+        }
+        isLoading = false;
+      }
+
+      async function saveSettings() {
+        await db.settings.put({ key: 'main', value: settings });
+      }
+
+      async function exportData() {
+        const data = { settings, logs, version: 1 };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `pushups-backup-${getTodayISO()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('DATA EXPORTED');
+      }
+
+      async function importData(file) {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const data = JSON.parse(e.target.result);
+            if (data.version === 1) {
+              settings = data.settings;
+              logs = data.logs;
+              await db.settings.put({ key: 'main', value: settings });
+              await db.logs.clear();
+              await db.logs.bulkAdd(logs);
+              showToast('DATA IMPORTED');
+              render();
+            }
+          } catch (err) {
+            showToast('INVALID FILE');
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      function resetProgram(keepHistory = true) {
+        const max = prompt('MAX PUSHUPS IN ONE SET?');
+        if (!max) return;
+        
+        const week = getWeekFromMaxPushups(parseInt(max));
+        settings.currentWeek = week;
+        settings.programStarted = new Date().toISOString();
+        saveSettings();
+        
+        if (!keepHistory) {
+          logs = [];
+          db.logs.clear();
+        }
+        
+        render();
+        showToast(`STARTING WEEK ${week}`);
+      }
+
+      // -------------------- NOTIFICATIONS --------------------
+      async function requestNotificationPermission() {
+        if (!('Notification' in window)) return false;
+        if (Notification.permission === 'granted') return true;
+        return await Notification.requestPermission() === 'granted';
+      }
+
+      function updateNotification() {
+        if (!('Notification' in window) || Notification.permission !== 'granted') return;
+        
+        const today = getTodayISO();
+        const info = getDayInfo(today);
+        const log = getTodayLog();
+        
+        let title, body;
+        if (info.isRest) {
+          title = 'PUSHUPS — REST DAY';
+          body = 'Recover. Back at it Monday.';
+        } else {
+          const target = log.target;
+          const actual = log.actual;
+          const done = log.completed ? '✓ DONE' : '';
+          title = `PUSHUPS ${actual}/${target} ${done}`;
+          body = log.completed ? 'TARGET MET — GOOD WORK.' : 'TAP TO LOG SET';
+        }
+        
+        // Close existing
+        navigator.serviceWorker?.getRegistrations().then(regs => {
+          regs.forEach(reg => reg.getNotifications({ tag: 'pushups' }).then(notifs => {
+            notifs.forEach(n => n.close());
+          }));
+        });
+        
+        new Notification(title, {
+          body,
+          tag: 'pushups',
+          requireInteraction: true,
+          silent: true,
+          icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%230a0a0a"/%3E%3Ctext x="50" y="70" font-size="60" text-anchor="middle" fill="%23ef4444" font-family="monospace" font-weight="bold"%3E💪%3C/text%3E%3C/svg%3E'
+        });
+      }
+
+      // -------------------- TOAST --------------------
+      function showToast(msg) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2500);
+      }
+
+      // -------------------- RENDERING --------------------
+      const app = document.getElementById('app');
+
+      function render() {
+        if (isLoading) {
+          app.innerHTML = `<div class="p-4 text-center text-muted">LOADING...</div>`;
+          return;
+        }
+        
+        if (currentView === 'today') renderToday();
+        else if (currentView === 'history') renderHistory();
+        else if (currentView === 'settings') renderSettings();
+        else if (currentView === 'day-detail') renderDayDetail();
+      }
+
+      function renderToday() {
+        const today = getTodayISO();
+        const info = getDayInfo(today);
+        const log = getTodayLog();
+        const target = log.target;
+        const actual = log.actual;
+        const percent = target > 0 ? Math.min(100, (actual / target) * 100) : 0;
+        
+        let html = `
+          <div class="flex flex-col" style="min-height: 100vh;">
+            <!-- Header -->
+            <div class="p-4 flex justify-between items-center border-bottom" style="border-bottom: 2px solid #2a2a2a;">
+              <div>
+                <div class="day-label">${info.dayName}</div>
+                <div class="text-large" style="font-size: 2rem;">WEEK ${settings.currentWeek}</div>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="window.navTo('history')" class="btn btn-icon">
+                  <i class="fas fa-list"></i>
+                </button>
+                <button onclick="window.navTo('settings')" class="btn btn-icon">
+                  <i class="fas fa-cog"></i>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Main -->
+            <div class="flex-1 p-4">
+        `;
+        
+        if (info.isRest) {
+          html += `
+            <div class="text-center" style="padding: 60px 0;">
+              <div class="rest-badge" style="font-size: 2rem; padding: 16px 32px;">REST DAY</div>
+              <p class="text-muted mt-4">SATURDAY & SUNDAY — NO TARGET</p>
+              <p class="text-muted">RECOVER. BACK MONDAY.</p>
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="text-center mb-6">
+              <div class="target-number">${target}</div>
+              <div class="day-label">TARGET</div>
+            </div>
+            
+            <div class="mb-4">
+              <div class="flex justify-between mb-2">
+                <span class="day-label">PROGRESS</span>
+                <span style="font-size: 2rem; font-weight: 700;">${actual}/${target}</span>
+              </div>
+              <div class="progress-container">
+                <div class="progress-fill" style="width: ${percent}%;"></div>
+              </div>
+            </div>
+            
+            <button onclick="window.showAddSetModal()" class="btn-solid btn-large mb-4">
+              [+] ADD SET
+            </button>
+          `;
+        }
+        
+        // Sets list
+        if (log.sets.length > 0) {
+          html += `<div class="card"><h4 class="mb-2">TODAY'S SETS</h4><ul class="set-list">`;
+          log.sets.forEach((reps, i) => {
+            html += `
+              <li class="set-item" onclick="window.editSet('${today}', ${i})">
+                <span>${reps} REPS</span>
+                <i class="fas fa-chevron-right text-muted"></i>
+              </li>
+            `;
+          });
+          html += `</ul></div>`;
+        }
+        
+        if (!info.isRest && log.completed) {
+          html += `
+            <div class="mt-4 text-center">
+              <div style="border: 2px solid #22c55e; color: #22c55e; padding: 16px; font-weight: 700; text-transform: uppercase;">
+                ✓ TARGET MET
+              </div>
+            </div>
+          `;
+        }
+        
+        html += `
+            </div>
+          </div>
+        `;
+        
+        app.innerHTML = html;
+      }
+
+      function renderHistory() {
+        const sortedLogs = [...logs].sort((a, b) => b.date.localeCompare(a.date));
+        
+        let html = `
+          <div class="flex flex-col" style="min-height: 100vh;">
+            <div class="p-4 flex items-center gap-4" style="border-bottom: 2px solid #2a2a2a;">
+              <button onclick="window.navTo('today')" class="btn btn-icon">
+                <i class="fas fa-arrow-left"></i>
+              </button>
+              <h2 style="font-size: 1.5rem;">HISTORY</h2>
+            </div>
+            
+            <div class="flex-1">
+        `;
+        
+        if (sortedLogs.length === 0) {
+          html += `<p class="p-4 text-muted text-center">NO LOGS YET</p>`;
+        } else {
+          sortedLogs.forEach(log => {
+            const info = getDayInfo(log.date);
+            const completedClass = info.isRest ? 'rest' : (log.completed ? 'completed' : 'missed');
+            const statusIcon = info.isRest ? '—' : (log.completed ? '✓' : '✗');
+            const displayTarget = info.isRest ? 'REST' : log.target;
+            const displayActual = info.isRest ? '—' : log.actual;
+            
+            html += `
+              <div class="history-item ${completedClass}" onclick="window.viewDay('${log.date}')">
+                <div>
+                  <div class="day-label">${info.dayName} ${log.date.slice(5)}</div>
+                  <div style="font-size: 1.25rem; font-weight: 700;">
+                    ${displayActual} / ${displayTarget}
+                  </div>
+                </div>
+                <div style="font-size: 1.5rem; font-weight: 700;">
+                  ${statusIcon}
+                </div>
+              </div>
+            `;
+          });
+        }
+        
+        html += `
+            </div>
+          </div>
+        `;
+        
+        app.innerHTML = html;
+      }
+
+      function renderDayDetail() {
+        if (!selectedDate) {
+          navTo('history');
+          return;
+        }
+        
+        const log = logs.find(l => l.date === selectedDate) || {
+          date: selectedDate,
+          target: 0,
+          actual: 0,
+          sets: [],
+          completed: false
+        };
+        const info = getDayInfo(selectedDate);
+        
+        let html = `
+          <div class="flex flex-col" style="min-height: 100vh;">
+            <div class="p-4 flex items-center gap-4" style="border-bottom: 2px solid #2a2a2a;">
+              <button onclick="window.navTo('history')" class="btn btn-icon">
+                <i class="fas fa-arrow-left"></i>
+              </button>
+              <div>
+                <div class="day-label">${info.dayName}</div>
+                <h2>${selectedDate}</h2>
+              </div>
+            </div>
+            
+            <div class="p-4">
+        `;
+        
+        if (info.isRest) {
+          html += `<div class="rest-badge">REST DAY</div>`;
+        } else {
+          html += `
+            <div class="mb-4">
+              <div class="day-label">TARGET</div>
+              <div style="font-size: 3rem; font-weight: 700; color: #ef4444;">${log.target}</div>
+            </div>
+            <div class="mb-4">
+              <div class="day-label">COMPLETED</div>
+              <div style="font-size: 2rem; font-weight: 700;">${log.actual} / ${log.target}</div>
+            </div>
+            <button onclick="window.showAddSetModalForDate('${selectedDate}')" class="btn btn-large mb-4">
+              [+] ADD SET
+            </button>
+          `;
+        }
+        
+        if (log.sets.length > 0) {
+          html += `<ul class="set-list">`;
+          log.sets.forEach((reps, i) => {
+            html += `
+              <li class="set-item" onclick="window.editSet('${selectedDate}', ${i})">
+                <span>${reps} REPS</span>
+                <i class="fas fa-chevron-right"></i>
+              </li>
+            `;
+          });
+          html += `</ul>`;
+        }
+        
+        html += `
+            </div>
+          </div>
+        `;
+        
+        app.innerHTML = html;
+      }
+
+      function renderSettings() {
+        let html = `
+          <div class="flex flex-col" style="min-height: 100vh;">
+            <div class="p-4 flex items-center gap-4" style="border-bottom: 2px solid #2a2a2a;">
+              <button onclick="window.navTo('today')" class="btn btn-icon">
+                <i class="fas fa-arrow-left"></i>
+              </button>
+              <h2 style="font-size: 1.5rem;">SETTINGS</h2>
+            </div>
+            
+            <div class="p-4 flex-1">
+              <div class="card mb-4">
+                <h3 class="mb-4">CURRENT WEEK</h3>
+                <div style="font-size: 3rem; font-weight: 700; color: #ef4444;">${settings.currentWeek}</div>
+                <p class="text-muted mt-2">TARGET: ${calculateTargetForWeek(settings.currentWeek)} PUSHUPS</p>
+              </div>
+              
+              <div class="card mb-4">
+                <h3 class="mb-4">NOTIFICATION TIME</h3>
+                <input type="time" id="notif-time" value="${settings.notificationTime}" class="mb-2">
+                <button onclick="window.saveNotifTime()" class="btn w-full">SAVE</button>
+              </div>
+              
+              <div class="flex flex-col gap-2">
+                <button onclick="window.exportData()" class="btn">
+                  📁 EXPORT DATA
+                </button>
+                <button onclick="document.getElementById('import-file').click()" class="btn">
+                  📂 IMPORT DATA
+                </button>
+                <input type="file" id="import-file" accept=".json" style="display: none;" onchange="window.handleImport(this)">
+                <button onclick="window.resetProgram(false)" class="btn" style="border-color: #ef4444; color: #ef4444;">
+                  🔄 RESET PROGRAM
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        app.innerHTML = html;
+      }
+
+      // -------------------- MODALS --------------------
+      function showAddSetModal(dateStr = null) {
+        const isToday = !dateStr || dateStr === getTodayISO();
+        const targetDate = dateStr || getTodayISO();
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal-backdrop';
+        modal.innerHTML = `
+          <div class="modal">
+            <h3>ADD SET</h3>
+            <input type="number" id="set-reps" placeholder="REPS" min="1" class="mb-4" autofocus>
+            <div class="flex gap-2">
+              <button onclick="this.closest('.modal-backdrop').remove()" class="btn w-full">CANCEL</button>
+              <button onclick="window.confirmAddSet('${targetDate}')" class="btn-solid w-full">ADD</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+        document.getElementById('set-reps').focus();
+      }
+
+      function showEditSetModal(dateStr, index) {
+        const log = logs.find(l => l.date === dateStr);
+        if (!log) return;
+        
+        const reps = log.sets[index];
+        const modal = document.createElement('div');
+        modal.className = 'modal-backdrop';
+        modal.innerHTML = `
+          <div class="modal">
+            <h3>EDIT SET</h3>
+            <input type="number" id="edit-reps" value="${reps}" min="0" class="mb-4" autofocus>
+            <div class="flex gap-2">
+              <button onclick="this.closest('.modal-backdrop').remove()" class="btn w-full">CANCEL</button>
+              <button onclick="window.confirmEditSet('${dateStr}', ${index})" class="btn w-full">SAVE</button>
+            </div>
+            <button onclick="window.deleteSet('${dateStr}', ${index}); this.closest('.modal-backdrop').remove()" class="btn w-full mt-2" style="border-color: #ef4444; color: #ef4444;">
+              DELETE
+            </button>
+          </div>
+        `;
+        document.body.appendChild(modal);
+        document.getElementById('edit-reps').focus();
+      }
+
+      // -------------------- GLOBAL FUNCTIONS --------------------
+      window.navTo = (view) => {
+        currentView = view;
+        selectedDate = null;
+        render();
+      };
+      
+      window.viewDay = (dateStr) => {
+        selectedDate = dateStr;
+        currentView = 'day-detail';
+        render();
+      };
+      
+      window.showAddSetModal = () => showAddSetModal();
+      window.showAddSetModalForDate = (dateStr) => showAddSetModal(dateStr);
+      
+      window.confirmAddSet = (dateStr) => {
+        const input = document.getElementById('set-reps');
+        const reps = parseInt(input.value);
+        if (reps > 0) {
+          const log = logs.find(l => l.date === dateStr) || {
+            date: dateStr,
+            target: getDayInfo(dateStr).isRest ? 0 : calculateTargetForWeek(getWeekForDate(dateStr)),
+            actual: 0,
+            sets: [],
+            completed: false
+          };
+          log.sets.push(reps);
+          log.actual = log.sets.reduce((a, b) => a + b, 0);
+          log.completed = getDayInfo(dateStr).isRest ? true : log.actual >= log.target;
+          saveLog(log);
+          if (dateStr === getTodayISO()) updateNotification();
+        }
+        document.querySelector('.modal-backdrop')?.remove();
+        render();
+      };
+      
+      window.editSet = (dateStr, index) => showEditSetModal(dateStr, index);
+      
+      window.confirmEditSet = (dateStr, index) => {
+        const input = document.getElementById('edit-reps');
+        const reps = parseInt(input.value);
+        updateSet(dateStr, index, reps);
+        document.querySelector('.modal-backdrop')?.remove();
+      };
+      
+      window.deleteSet = (dateStr, index) => {
+        updateSet(dateStr, index, 0);
+      };
+      
+      window.saveNotifTime = () => {
+        const input = document.getElementById('notif-time');
+        if (input.value) {
+          settings.notificationTime = input.value;
+          saveSettings();
+          showToast('NOTIFICATION TIME SAVED');
+        }
+      };
+      
+      window.exportData = exportData;
+      
+      window.handleImport = (input) => {
+        if (input.files[0]) importData(input.files[0]);
+      };
+      
+      window.resetProgram = (keepHistory) => resetProgram(keepHistory);
+
+      // -------------------- INIT --------------------
+      async function init() {
+        await loadData();
+        await requestNotificationPermission();
+        updateNotification();
+        render();
+        
+        // Schedule notification check
+        setInterval(() => {
+          const now = new Date();
+          const [h, m] = settings.notificationTime.split(':');
+          if (now.getHours() == h && now.getMinutes() == m) {
+            updateNotification();
+          }
+        }, 60000);
+      }
+      
+      init();
+    })();
+  </script>
+</body>
+</html>
